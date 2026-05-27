@@ -1,0 +1,25 @@
+{
+  "name": "Bulk Workflow Manager",
+  "id": "bulk-workflow-manager",
+  "version": "1.0.0",
+  "description": "A side panel extension for the Sitecore Pages editor that displays a navigable content tree with multi-select checkboxes, allowing authors to select multiple items across different levels of the hiera",
+  "author": "Vibecore",
+  "extensionPoints": [
+    "xmc:pages:contextpanel"
+  ],
+  "permissions": [
+    "xmc:authoring:read",
+    "xmc:authoring:write",
+    "xmc:live:read"
+  ],
+  "configuration": {
+    "entryPoint": "/",
+    "width": 400,
+    "height": 700,
+    "resizable": true
+  },
+  "dependencies": {
+    "@sitecore-marketplace-sdk/client": "^0.3.2",
+    "@sitecore-marketplace-sdk/xmc": "^0.4.1"
+  }
+}
