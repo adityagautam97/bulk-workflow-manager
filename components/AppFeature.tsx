@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef, useMemo } from "react";
+import React, { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import type { ClientSDK } from "@sitecore-marketplace-sdk/client";
 import { usePageContext } from "@/hooks/usePageContext";
 import { WorkflowService } from "@/services/WorkflowService";
@@ -110,7 +110,7 @@ function TreeNode({
   onToggleExpand: (item: ContentTreeItem) => void;
   onSelectAllChildren: (item: ContentTreeItem) => void;
   filters: FilterState;
-}): JSX.Element | null {
+}): React.JSX.Element | null {
   const isSelected = selectedIds.has(item.itemId);
   const hasSelectedChildren = item.children.some(
     (c) =>
@@ -292,7 +292,7 @@ function ResultsPanel({
 }: {
   progress: ExecutionProgress;
   onClose: () => void;
-}): JSX.Element {
+}): React.JSX.Element {
   const successCount = progress.results.filter((r) => r.success).length;
   const failCount = progress.results.filter((r) => !r.success).length;
 
@@ -386,7 +386,7 @@ function ResultsPanel({
 
 // ─── Main AppFeature Component ─────────────────────────────────────
 
-export function AppFeature({ client }: { client: ClientSDK }): JSX.Element {
+export function AppFeature({ client }: { client: ClientSDK }): React.JSX.Element {
   const { pageContext, isLoading: pageLoading } = usePageContext(client);
   const serviceRef = useRef<WorkflowService | null>(null);
 

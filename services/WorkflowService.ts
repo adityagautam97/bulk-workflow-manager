@@ -59,11 +59,17 @@ export class WorkflowService {
 
     // Use explicit field() lookups for system workflow fields since they are not
     // returned by the generic fields { nodes { ... } } collection.
+    // Paginate through all children using cursor-based pagination.
     const query = `
-      query GetChildren($path: String!, $language: String!) {
+      query GetChildren($path: String!, $language: String!, $after: String = "") {
         item(where: { path: $path, language: $language }) {
-          children {
-            nodes {
+          children(first: 50, after: $after) {
+            pageInfo {
+              endCursor
+              hasNext
+            }
+            total
+            results {
               itemId
               name
               displayName
@@ -91,26 +97,40 @@ export class WorkflowService {
       }
     `;
 
-    const response = await this.client.mutate("xmc.authoring.graphql", {
-      params: {
-        query: { sitecoreContextId: contextId },
-        body: {
-          query,
-          variables: { path: parentPath, language },
+    const allNodes: Array<Record<string, unknown>> = [];
+    let hasNext = true;
+    let afterCursor = "";
+
+    while (hasNext) {
+      const response = await this.client.mutate("xmc.authoring.graphql", {
+        params: {
+          query: { sitecoreContextId: contextId },
+          body: {
+            query,
+            variables: { path: parentPath, language, after: afterCursor },
+          },
         },
-      },
-    });
+      });
 
-    const responseData = response?.data as Record<string, unknown>;
-    const innerData = (responseData?.data ?? responseData) as Record<
-      string,
-      unknown
-    >;
-    const item = innerData?.item as Record<string, unknown> | null;
-    const children = item?.children as { nodes: Array<Record<string, unknown>> } | null;
-    const nodes = children?.nodes ?? [];
+      const responseData = response?.data as Record<string, unknown>;
+      const innerData = (responseData?.data ?? responseData) as Record<
+        string,
+        unknown
+      >;
+      const item = innerData?.item as Record<string, unknown> | null;
+      const children = item?.children as {
+        pageInfo?: { endCursor: string; hasNext: boolean };
+        results?: Array<Record<string, unknown>>;
+      } | null;
 
-    return nodes.map((node) => {
+      const results = children?.results ?? [];
+      allNodes.push(...results);
+
+      hasNext = children?.pageInfo?.hasNext ?? false;
+      afterCursor = children?.pageInfo?.endCursor ?? "";
+    }
+
+    return allNodes.map((node) => {
       // Extract workflow fields from the explicit field() aliases
       const workflowStateField = node.workflowState as { value: string } | null;
       const workflowField = node.workflow as { value: string } | null;
